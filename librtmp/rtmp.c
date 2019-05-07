@@ -343,7 +343,7 @@ RTMP_Init(RTMP *r)
   r->m_nServerBW = 2500000;
   r->m_fAudioCodecs = 3191.0;
   r->m_fVideoCodecs = 252.0;
-  r->Link.timeout = 30;
+	r->Link.timeout = 3;
   r->Link.swfAge = 30;
 }
 
@@ -947,6 +947,15 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
         (r->m_sb.sb_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)))
       {
         RTMP_Log(RTMP_LOGERROR, "%s, Setting socket timeout to %ds failed!",
+				__FUNCTION__, r->Link.timeout);
+		}
+	}
+	{
+		SET_SNDTIMEO(tv, r->Link.timeout);
+		if (setsockopt
+			(r->m_sb.sb_socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)))
+		{
+			RTMP_Log(RTMP_LOGERROR, "%s, Setting socket send timeout to %ds failed!",
 	    __FUNCTION__, r->Link.timeout);
       }
   }
@@ -1525,7 +1534,7 @@ WriteN(RTMP *r, const char *buffer, int n)
         nBytes = HTTP_Post(r, RTMPT_SEND, ptr, n);
       else
         nBytes = RTMPSockBuf_Send(&r->m_sb, ptr, n);
-      /*RTMP_Log(RTMP_LOGDEBUG, "%s: %d\n", __FUNCTION__, nBytes); */
+		//RTMP_Log(RTMP_LOGDEBUG, "====%s: %d, n = %d", __FUNCTION__, nBytes, n); 
 
       if (nBytes < 0)
 	{
